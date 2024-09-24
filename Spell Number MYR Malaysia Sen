@@ -1,0 +1,90 @@
+function spellNumberEnglish(number) {
+  // Check if input is valid
+  if (typeof number !== 'number' || isNaN(number)) {
+    return 'Invalid input';
+  }
+
+  var ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+  var teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+  var tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+  function convertLessThanOneThousand(n) {
+    var words = '';
+
+    if (n >= 100) {
+      words += ones[Math.floor(n / 100)] + ' Hundred ';
+      n %= 100;
+    }
+
+    if (n >= 20) {
+      words += tens[Math.floor(n / 10)] + ' ';
+      n %= 10;
+    }
+
+    if (n > 0) {
+      if (n < 10) {
+        words += ones[n];
+      } else {
+        words += teens[n - 10];
+      }
+    }
+
+    return words;
+  }
+
+  if (number == 0) return 'zero ringgit';
+  if (number < 0) return 'negative ' + spellNumberEnglish(-number);
+
+  var words = '';
+  var numString = number.toFixed(2).toString().split('.');
+
+  if (numString[0].length > 12) return 'too large';
+
+  var billions = Math.floor(number / 1000000000);
+  var millions = Math.floor((number % 1000000000) / 1000000);
+  var thousands = Math.floor((number % 1000000) / 1000);
+  var hundreds = Math.floor(number % 1000);
+
+  if (billions) {
+    words += convertLessThanOneThousand(billions) + ' Billion ';
+  }
+
+  if (millions) {
+    words += convertLessThanOneThousand(millions) + ' Million ';
+  }
+
+  if (thousands) {
+    words += convertLessThanOneThousand(thousands) + ' Thousand ';
+  }
+
+  if (hundreds) {
+    words += convertLessThanOneThousand(hundreds);
+  }
+
+  if (numString[1] && parseInt(numString[1]) > 0) {
+    var cents = parseInt(numString[1]);
+    words += ' and ';
+    if (cents < 10) {
+      words += ones[cents] + ' ';
+    } else if (cents < 20) {
+      words += teens[cents - 10] + ' ';
+    } else {
+      words += tens[Math.floor(cents / 10)] + ' ';
+      if (cents % 10 !== 0) {
+        words += ones[cents % 10] + ' ';
+      }
+    }
+    words += 'Sen Only';
+  } else {
+    words += ' Only';
+  }
+
+  return words.trim();
+}
+
+// Example usage:
+function testSpellNumberEnglish() {
+  var number = 123456.78;
+  var amountInWords = spellNumberEnglish(number);
+  Logger.log(amountInWords);
+}
