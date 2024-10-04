@@ -1,0 +1,73 @@
+// List of PIC names
+const pics = ["Jaya", "Frhn", "Far", "Mitha"];
+
+// Function to assign PIC to a new entry for a specific sheet
+function assignPIC(sheetName) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+  var dataRange = sheet.getDataRange();
+  var data = dataRange.getValues();
+
+  // Determine the last used PIC index to maintain rotation
+  var lastAssignedPic = null;
+  // Find the last non-empty PIC in column F
+  for (var i = data.length - 1; i > 0; i--) {
+    if (data[i][5] !== "") {
+      lastAssignedPic = data[i][5];
+      break;
+    }
+  }
+  var picCounter = pics.indexOf(lastAssignedPic);
+  picCounter = picCounter === -1 ? 0 : (picCounter + 1) % pics.length;
+
+  // Iterate through rows, starting from the second (index 1, assuming the first row is headers)
+  for (var i = 1; i < data.length; i++) {
+    var project = data[i][1]; // Assuming Project is in column B
+    var unitNo = data[i][2]; // Assuming Unit No is in column C
+    var picAssigned = data[i][5]; // Assuming PIC is in column F
+    
+    // Only assign if PIC cell is empty
+    if (picAssigned === "") {
+      // Check for duplicates in the same sheet
+      var exists = data.some(function(row, index) {
+        return row[1] === project && row[2] === unitNo && index !== i && row[5] !== "";
+      });
+
+      if (exists) {
+        // Find the existing entry with the same project and unit no
+        var existingEntry = data.find(function(row) {
+          return row[1] === project && row[2] === unitNo && row[5] !== "";
+        });
+        // Set the PIC of the current row as the existing PIC
+        sheet.getRange(i + 1, 6).setValue(existingEntry[5] + " (Duplicated in List No " + (data.indexOf(existingEntry) + 1) + ")");
+      } else {
+        // Assign new PIC
+        var newPic = pics[picCounter];
+        picCounter = (picCounter + 1) % pics.length;
+        sheet.getRange(i + 1, 6).setValue(newPic);
+      }
+    }
+  }
+}
+
+// Main function to iterate over all sheets and call assignPIC
+function assignPICForAllSheets() {
+  // List your sheet names here
+  const sheetNames = ['VRSH-ListCallRec', 'LILI-ListCallRec']; // Replace with your actual sheet names
+  
+  // Loop over all sheet names and assign PIC for each
+  sheetNames.forEach(sheetName => {
+    console.log('Processing sheet:', sheetName); // Log the sheet name
+    
+    // Get the sheet by name
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+    
+    // Check if the sheet is found
+    if (!sheet) {
+      console.error('Sheet not found:', sheetName); // Log if the sheet is not found
+      return; // Skip if the sheet is not found
+    }
+    
+    assignPIC(sheetName);
+  });
+}
+
